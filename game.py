@@ -26,6 +26,10 @@ class ConnectFourGame:
         else:
             self.view = None
 
+        if self.view is not None:
+            print('A game window has opened. Answer the symbol prompts '
+                  'here in the terminal to start.')
+
         # Set up Players
         p1_name = 'CPU 1' if p1_type.is_bot else 'Player 1'
         p2_name = 'CPU 2' if p2_type.is_bot else 'Player 2'
@@ -38,6 +42,7 @@ class ConnectFourGame:
         self.player_2 = p2_type(name=p2_name, symbol=p2_symbol, view=self.view)
 
         self.turn = 0
+        self.note = ''  # latest status note from a player, if it has one
 
     def start(self):
         """Begin playing a new game.
@@ -47,6 +52,7 @@ class ConnectFourGame:
         # Clear the board and make Player 1 move first again
         self.board.clear()
         self.turn = 0
+        self.note = ''
 
         # Main game loop
         while not self.board.is_full():
@@ -59,9 +65,11 @@ class ConnectFourGame:
             print(f"{current_player.name}'s turn.")
 
             # Display the board
-            self.display(status_text=(
-                f"{current_player.name}'s turn "
-                f"(playing '{current_player.symbol}')"))
+            status_text = (f"{current_player.name}'s turn "
+                           f"(playing '{current_player.symbol}')")
+            if self.note:
+                status_text += '\n' + self.note
+            self.display(status_text=status_text)
 
             # Get the next player's move
             move_is_invalid = True
@@ -77,6 +85,12 @@ class ConnectFourGame:
                     print(err.message)
                     if self.view is not None:
                         self.view.draw(status_text=err.message)
+
+            # Show any note the player has about its position
+            note = getattr(current_player, 'status_note', '')
+            if note:
+                self.note = note
+                print(note)
 
             # Increment the turn count
             self.turn += 1

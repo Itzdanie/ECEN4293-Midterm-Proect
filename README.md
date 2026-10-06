@@ -15,6 +15,9 @@ the perfect bot is always Player 1. It wins, but not necessarily quickly.
 - `player.py`: `PerfectPlayer` (WeakC4), `RuleBasedPlayer` (win, block,
   center) and `CPUPlayer` (random, optional `seed`) alongside the Lab 2
   players.
+- Status notes: while you play, the window title and console show whether
+  the bot is still in the book, or has reached a steady state with a forced
+  win within N more bot moves.
 - `bot_vs_bot.py`: headless games and an exhaustive check.
 - `solution/`: WeakC4 data, see `solution/SOURCE.md`.
 
