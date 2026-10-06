@@ -34,7 +34,7 @@ class ConnectFourBoard:
         for row in range(self.num_rows):
             for col in range(self.num_cols):
                 symbol = self.rows[row][col]
-                if symbol is _EMPTY:
+                if symbol == _EMPTY:
                     continue
                 for drow, dcol in directions:
                     # Does a run of 4 matching symbols start here in this direction?
@@ -54,11 +54,11 @@ class ConnectFourBoard:
         # Check that the move is valid
         if not 0 <= col < self.num_cols:
             raise InvalidMoveError(f'Column {col} is not on the board.')
-        if self.rows[0][col] is not _EMPTY:
+        if self.rows[0][col] != _EMPTY:
             raise InvalidMoveError(f'Column {col} is already full.')
 
         # Find the first empty row in col and replace it with symbol
         for row in reversed(range(self.num_rows)):
-            if self.rows[row][col] is _EMPTY:
+            if self.rows[row][col] == _EMPTY:
                 self.rows[row][col] = symbol
                 break
