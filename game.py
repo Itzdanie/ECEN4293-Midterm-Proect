@@ -1,10 +1,11 @@
 from board import ConnectFourBoard, InvalidMoveError
-from player import ConsolePlayer, CPUPlayer, MatplotlibPlayer
+from player import ConsolePlayer, MatplotlibPlayer, PerfectPlayer
 
 class ConnectFourGame:
     """Represents a Connect 4 game. Manages board and players."""
 
-    def __init__(self, rows=6, cols=7, p2_type=ConsolePlayer, display_mode='console'):
+    def __init__(self, rows=6, cols=7, p1_type=ConsolePlayer,
+                 p2_type=ConsolePlayer, display_mode='console'):
         """Initialize a new game"""
 
         self.display_mode = display_mode
@@ -17,16 +18,16 @@ class ConnectFourGame:
         if display_mode == 'matplotlib':
             from matplotlib_view import MatplotlibBoardView
             self.view = MatplotlibBoardView(self.board)
-            p1_type = MatplotlibPlayer
-            if p2_type is not CPUPlayer:
+            if p1_type is ConsolePlayer:
+                p1_type = MatplotlibPlayer
+            if p2_type is ConsolePlayer:
                 p2_type = MatplotlibPlayer
         else:
             self.view = None
-            p1_type = ConsolePlayer
 
         # Set up Players
-        p1_name = 'Player 1'
-        p2_name = 'CPU' if p2_type is CPUPlayer else 'Player 2'
+        p1_name = 'CPU 1' if p1_type.is_bot else 'Player 1'
+        p2_name = 'CPU 2' if p2_type.is_bot else 'Player 2'
         p1_symbol = self.get_player_symbol(p1_name)
         p2_symbol = self.get_player_symbol(p2_name)
         while p2_symbol == p1_symbol:
@@ -42,8 +43,9 @@ class ConnectFourGame:
 
         Players take turns until either someone wins or the board is full."""
 
-        # Clear the board
+        # Clear the board and make Player 1 move first again
         self.board.clear()
+        self.turn = 0
 
         # Main game loop
         while not self.board.is_full():
@@ -96,10 +98,10 @@ class ConnectFourGame:
         while symbol_is_invalid:
             symbol = input(f'Enter a character to use as a symbol for {player_name}: ')
             symbol = symbol.strip() # Remove leading and trailing whitespace
-            symbol = symbol[0] # Only keep the first character, ignore everything else
             if not symbol:
                 print('Symbol must not be a whitespace character!')
             else:
+                symbol = symbol[0] # Only keep the first character
                 # Get positive confirmation from the player
                 confirmation = input(f'Use "{symbol}" for {player_name}? (y/N): ')
                 symbol_is_invalid = not confirmation.lower().startswith('y')
@@ -109,12 +111,12 @@ class ConnectFourGame:
 if __name__ == "__main__":
     # Let the user pick the game mode
     print('Connect 4')
-    print('  1) Single-player (vs CPU)')
+    print('  1) Single-player (you play second against the perfect CPU)')
     print('  2) Two-player')
     mode = ''
     while mode not in ('1', '2'):
         mode = input('Select a game mode (1/2): ').strip()
-    p2_type = CPUPlayer if mode == '1' else ConsolePlayer
+    p1_type = PerfectPlayer if mode == '1' else ConsolePlayer
 
     # Let the user pick how the board should be displayed
     print('Display mode')
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     display_mode = 'matplotlib' if display_choice == '2' else 'console'
 
     # Play a new connect 4 game
-    game = ConnectFourGame(p2_type=p2_type, display_mode=display_mode)
+    game = ConnectFourGame(p1_type=p1_type, display_mode=display_mode)
 
     keep_playing = True
     while keep_playing:
