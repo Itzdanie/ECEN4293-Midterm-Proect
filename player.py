@@ -25,11 +25,12 @@ class AbstractPlayer(ABC):
     def __init__(self, symbol, name, view=None):
         self.name = name
         self.symbol = symbol
-        self.view = view  # Optional MatplotlibBoardView, used by players that need one
+        # Optional MatplotlibBoardView, used by players that need one
+        self.view = view
 
     @abstractmethod
     def move(self, **kwargs):
-        """Return an integer representing the column where the player intends to play a piece."""
+        """Return the column (an integer) where the player will play."""
 
 
 class ConsolePlayer(AbstractPlayer):
@@ -108,11 +109,12 @@ class PerfectPlayer(AbstractPlayer):
 
 
 class MatplotlibPlayer(AbstractPlayer):
-    """A player that picks a column by clicking on it in a matplotlib window."""
+    """A player that picks a column by clicking it in a matplotlib window."""
 
     def move(self, board=None, **kwargs):
         """Wait for the player to click a column in the matplotlib window."""
         if self.view is None:
-            raise ValueError('MatplotlibPlayer.move needs a view to interact with.')
+            raise ValueError(
+                'MatplotlibPlayer.move needs a view to interact with.')
         return self.view.get_column_click(
             status_text=f"{self.name}'s turn (playing '{self.symbol}')")
