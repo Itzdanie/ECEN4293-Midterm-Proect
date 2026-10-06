@@ -26,6 +26,7 @@ python bot_vs_bot.py                # bot vs random and rule-based opponents
 python bot_vs_bot.py --exhaustive   # every Yellow reply sequence
 python -m pytest -m "not slow"      # quick tests
 python -m pytest                    # includes the exhaustive test
+python -m pycodestyle . --exclude=solution   # PEP 8 check
 ```
 
 ## Credits and license

@@ -38,8 +38,10 @@ class MatplotlibBoardView:
             for col in range(board.num_cols):
                 symbol = board.rows[row][col]
                 if symbol is not _EMPTY:
-                    y = board.num_rows - row - 0.5  # flip so row 0 is drawn at the top
-                    self.ax.text(col + 0.5, y, symbol, ha='center', va='center', fontsize=20)
+                    # flip so row 0 is drawn at the top
+                    y = board.num_rows - row - 0.5
+                    self.ax.text(col + 0.5, y, symbol, ha='center',
+                                 va='center', fontsize=20)
 
         self.ax.set_xlim(0, board.num_cols)
         self.ax.set_ylim(0, board.num_rows)
@@ -64,7 +66,7 @@ class MatplotlibBoardView:
         self.closed = True
 
     def get_column_click(self, status_text):
-        """Block until the player clicks a valid column, then return its index."""
+        """Block until the player clicks a valid column; return its index."""
         self.selected_col = None
         self.draw(status_text=status_text)
         while self.selected_col is None:

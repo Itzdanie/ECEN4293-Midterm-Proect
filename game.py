@@ -1,6 +1,7 @@
 from board import ConnectFourBoard, InvalidMoveError
 from player import ConsolePlayer, MatplotlibPlayer, PerfectPlayer
 
+
 class ConnectFourGame:
     """Represents a Connect 4 game. Manages board and players."""
 
@@ -58,17 +59,22 @@ class ConnectFourGame:
             print(f"{current_player.name}'s turn.")
 
             # Display the board
-            self.display(status_text=f"{current_player.name}'s turn (playing '{current_player.symbol}')")
+            self.display(status_text=(
+                f"{current_player.name}'s turn "
+                f"(playing '{current_player.symbol}')"))
 
             # Get the next player's move
             move_is_invalid = True
-            while move_is_invalid: # Keep trying until we get a valid move
+            # Keep trying until we get a valid move
+            while move_is_invalid:
                 col = current_player.move(board=self.board)
                 try:
                     self.board.add_piece(col, current_player.symbol)
-                    move_is_invalid = False # If we make it to this line, move was valid
+                    # If we make it to this line, move was valid
+                    move_is_invalid = False
                 except InvalidMoveError as err:
-                    print(err.message) # Otherwise display why the move was not valid
+                    # Otherwise display why the move was not valid
+                    print(err.message)
                     if self.view is not None:
                         self.view.draw(status_text=err.message)
 
@@ -79,14 +85,15 @@ class ConnectFourGame:
             if self.board.check_winner():
                 print(f'{current_player.name} wins!')
                 self.display(status_text=f'{current_player.name} wins!')
-                break # Get out of the while loop without triggering the else clause
+                # Get out of the while loop without triggering the else clause
+                break
         else:
             # If we reach this line, the board is full
             print('No winner!')
             self.display(status_text='No winner!')
 
     def display(self, status_text=None):
-        """Show the current board state, using whichever display mode is active."""
+        """Show the current board state in the active display mode."""
         if self.view is not None:
             self.view.draw(status_text=status_text)
         else:
@@ -96,14 +103,16 @@ class ConnectFourGame:
         """Request a valid symbol to use for a player."""
         symbol_is_invalid = True
         while symbol_is_invalid:
-            symbol = input(f'Enter a character to use as a symbol for {player_name}: ')
-            symbol = symbol.strip() # Remove leading and trailing whitespace
+            symbol = input(
+                f'Enter a character to use as a symbol for {player_name}: ')
+            symbol = symbol.strip()  # Remove leading and trailing whitespace
             if not symbol:
                 print('Symbol must not be a whitespace character!')
             else:
-                symbol = symbol[0] # Only keep the first character
+                symbol = symbol[0]  # Only keep the first character
                 # Get positive confirmation from the player
-                confirmation = input(f'Use "{symbol}" for {player_name}? (y/N): ')
+                confirmation = input(
+                    f'Use "{symbol}" for {player_name}? (y/N): ')
                 symbol_is_invalid = not confirmation.lower().startswith('y')
         return symbol
 

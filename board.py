@@ -1,13 +1,18 @@
-_EMPTY = ' ' # Used to indicate empty spaces in the board
+_EMPTY = ' '  # Used to indicate empty spaces in the board
+
 
 class InvalidMoveError(ValueError):
     def __init__(self, message):
         super().__init__(message)
         self.message = message
 
+
 class ConnectFourBoard:
 
-    """Represents a Connect 4 board. Handles board state and checks moves for validity."""
+    """Represents a Connect 4 board.
+
+    Handles board state and checks moves for validity.
+    """
 
     def __init__(self, num_rows, num_cols):
         """Initialize a new board"""
@@ -37,10 +42,12 @@ class ConnectFourBoard:
                 if symbol == _EMPTY:
                     continue
                 for drow, dcol in directions:
-                    # Does a run of 4 matching symbols start here in this direction?
+                    # Does a run of 4 matching symbols start here
+                    # in this direction?
                     if all(0 <= row + drow * i < self.num_rows
                            and 0 <= col + dcol * i < self.num_cols
-                           and self.rows[row + drow * i][col + dcol * i] == symbol
+                           and (self.rows[row + drow * i][col + dcol * i]
+                                == symbol)
                            for i in range(4)):
                         return True
         return False
