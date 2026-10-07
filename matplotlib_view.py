@@ -11,6 +11,7 @@ class MatplotlibBoardView:
         self.board = board
         self.selected_col = None
         self.closed = False
+        self.note = ''  # shown on every redraw until it is changed
 
         plt.ion()
         self.fig, self.ax = plt.subplots()
@@ -49,8 +50,10 @@ class MatplotlibBoardView:
         self.ax.set_xticklabels(range(board.num_cols))
         self.ax.set_yticks([])
         self.ax.set_xlabel('Click a column above to drop a piece there.')
-        if status_text:
-            self.ax.set_title(status_text)
+        # The note stays under whatever status message is showing
+        title = '\n'.join(text for text in (status_text, self.note) if text)
+        if title:
+            self.ax.set_title(title)
 
         self.fig.canvas.draw_idle()
         self.fig.canvas.flush_events()

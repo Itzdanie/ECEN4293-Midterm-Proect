@@ -97,6 +97,11 @@ class PerfectPlayer(AbstractPlayer):
         return cls._book
 
     @property
+    def in_steady_state(self):
+        """Whether the bot is following a steady-state diagram."""
+        return self._state is not None
+
+    @property
     def status_note(self):
         """Short message about the bot's position after its latest move.
 
