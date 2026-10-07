@@ -184,3 +184,55 @@ class WeakC4Book:
         if col is not None and mirrored:
             col = mirror_column(col)
         return col, state
+
+    def moves_to_win(self, grid, state):
+        """Most Red moves needed to win from a Red-to-move grid.
+
+        Follows the steady-state diagram in `state` against every possible
+        Yellow reply and returns the worst case, counting Red's winning move.
+        Raises ValueError if the diagram does not win from this position.
+        """
+        index, mirrored = state
+        if mirrored:
+            grid = [row[::-1] for row in grid]
+        grid = [row[:] for row in grid]
+        return _moves_to_win(grid, self.diagrams[index])
+
+
+def _moves_to_win(grid, diagram):
+    """Worst-case number of Red moves to win by following `diagram`."""
+    memo = {}
+
+    def red_turn(grid):
+        key = grid_key(grid)
+        if key in memo:
+            return memo[key]
+        col = query_steady_state(grid, diagram)
+        if col is None or col_height(grid, col) >= ROWS:
+            raise ValueError('the diagram gives no move here')
+        row = col_height(grid, col)
+        grid[row][col] = RED
+        try:
+            if makes_four(grid, col, row, RED):
+                result = 1
+            else:
+                replies = playable_columns(grid)
+                if not replies:
+                    raise ValueError('the game ends in a draw')
+                worst = 0
+                for reply in replies:
+                    reply_row = col_height(grid, reply)
+                    grid[reply_row][reply] = YELLOW
+                    try:
+                        if makes_four(grid, reply, reply_row, YELLOW):
+                            raise ValueError('Yellow wins')
+                        worst = max(worst, red_turn(grid))
+                    finally:
+                        grid[reply_row][reply] = EMPTY
+                result = 1 + worst
+        finally:
+            grid[row][col] = EMPTY
+        memo[key] = result
+        return result
+
+    return red_turn(grid)

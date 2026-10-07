@@ -101,3 +101,50 @@ def test_state_resets_between_games(capsys):
 @pytest.mark.slow
 def test_exhaustive_every_yellow_reply_loses():
     assert bot_vs_bot.exhaustive_check() > 0
+
+
+def test_moves_to_win_matches_actual_games(book):
+    """The predicted worst case is never exceeded in real games."""
+    import re
+    checked = 0
+    for seed in range(60):
+        bot = PerfectPlayer(symbol='X', name='Bot')
+        opponent = bot_vs_bot.make_opponent('random', seed)
+        board = ConnectFourBoard(6, 7)
+        players = (bot, opponent)
+        predicted = bot_moves = None
+        for turn in range(42):
+            player = players[turn % 2]
+            col = player.move(board=board)
+            board.add_piece(col, player.symbol)
+            if player is bot:
+                found = re.search(r'within (\d+) more', bot.status_note)
+                if predicted is None and found:
+                    predicted = int(found.group(1))
+                    bot_moves = 0
+                elif predicted is not None:
+                    bot_moves += 1
+            if board.check_winner():
+                break
+        if predicted is not None:
+            assert bot_moves <= predicted
+            checked += 1
+    assert checked > 0
+
+
+def test_status_notes(capsys):
+    bot = PerfectPlayer(symbol='X', name='Bot')
+    bot.move(board=ConnectFourBoard(6, 7))
+    assert bot.status_note == 'In the book: win guaranteed.'
+    # Not a book position, so there is no guarantee.
+    odd = board_from_position('1' + '1' + '1' + '1' + '1' + '1')
+    bot.move(board=odd)
+    assert 'no win guaranteed' in bot.status_note
+
+
+def test_moves_to_win_every_diagram_entry(book):
+    branches = json.loads((SOLUTION / 'branches.json').read_text())
+    entries = [(p, v) for p, v in branches.items() if isinstance(v, int)]
+    for position, index in entries[:25]:
+        grid = weakc4.grid_from_position(position)
+        assert 1 <= book.moves_to_win(grid, (index, False)) <= 21

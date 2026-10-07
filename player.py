@@ -87,12 +87,40 @@ class PerfectPlayer(AbstractPlayer):
         super().__init__(*args, **kwargs)
         self.last_move_from_book = None  # for tests and reporting
         self._state = None  # steady-state diagram being followed, if any
+        self._note_source = None  # what the status note is computed from
+        self._note = ''
 
     @classmethod
     def book(cls):
         if cls._book is None:
             cls._book = weakc4.WeakC4Book()
         return cls._book
+
+    @property
+    def status_note(self):
+        """Short message about the bot's position after its latest move.
+
+        Worked out on first use, since counting the moves to a win takes up
+        to a few seconds and headless games never show it.
+        """
+        if self._note_source is not None:
+            grid, state = self._note_source
+            self._note_source = None
+            if state is None:
+                self._note = 'In the book: win guaranteed.'
+            else:
+                self._note = self._steady_state_note(grid, state)
+        return self._note
+
+    def _steady_state_note(self, grid, state):
+        """Describe the forced win once the bot is following a diagram."""
+        moves = self.book().moves_to_win(grid, state)
+        if moves == 1:
+            return 'Steady state: the bot wins with this move.'
+        more = moves - 1
+        plural = '' if more == 1 else 's'
+        return (f'Steady state: forced win within {more} '
+                f'more bot move{plural}')
 
     def move(self, board=None, **kwargs):
         if board is None:
@@ -104,6 +132,10 @@ class PerfectPlayer(AbstractPlayer):
         self.last_move_from_book = col is not None
         if col is None:
             col = weakc4.fallback_move(grid)
+            self._note_source = None
+            self._note = 'Outside the book: no win guaranteed.'
+        else:
+            self._note_source = (grid, self._state)
         print(f'{self.name} plays in column {col}.')
         return col
 
