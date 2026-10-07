@@ -3,11 +3,13 @@
 ``python bot_vs_bot.py`` plays the bot against each Player 2 type.
 ``python bot_vs_bot.py --exhaustive`` additionally checks every possible
 Player 2 reply sequence against the WeakC4 solution (takes a few minutes).
+``python bot_vs_bot.py --show`` plays one random game in a window.
 """
 
 import argparse
 import contextlib
 import io
+import random
 
 import weakc4
 from board import ConnectFourBoard
@@ -35,6 +37,49 @@ def make_opponent(kind, seed=None):
     if kind == 'random':
         return CPUPlayer(symbol=YELLOW_SYMBOL, name='Random', seed=seed)
     return RuleBasedPlayer(symbol=YELLOW_SYMBOL, name='Rule-based')
+
+
+def show_random_game(seed=None, delay=0.7):
+    """Play one randomly chosen bot game in a matplotlib window.
+
+    The opponent kind and the random opponent's seed are picked at random
+    (or from `seed`, to repeat a game). Returns the winner or None.
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib_view import MatplotlibBoardView
+
+    rng = random.Random(seed)
+    kind = rng.choice(('random', 'rule'))
+    opponent = make_opponent(kind, rng.randrange(2 ** 32))
+    bot = PerfectPlayer(symbol=RED_SYMBOL, name='Perfect')
+    players = (bot, opponent)
+    print(f'Perfect bot vs {opponent.name} opponent.')
+
+    board = ConnectFourBoard(weakc4.ROWS, weakc4.COLS)
+    view = MatplotlibBoardView(board)
+    view.draw(status_text=f'Perfect bot vs {opponent.name}')
+    winner = None
+    for turn in range(board.num_rows * board.num_cols):
+        plt.pause(delay)
+        if view.closed:
+            return None
+        player = players[turn % 2]
+        col = player.move(board=board)
+        board.add_piece(col, player.symbol)
+        if player is bot and bot.in_steady_state:
+            view.note = bot.status_note
+        elif player is bot:
+            view.note = ''
+        if board.check_winner():
+            winner = player
+            break
+        view.draw(status_text=f"{players[(turn + 1) % 2].name}'s turn")
+    view.draw(status_text=f'{winner.name} wins!' if winner else 'No winner!')
+
+    # Leave the finished game up until the window is closed
+    plt.ioff()
+    plt.show()
+    return winner
 
 
 def run_games(kind, games, seed=0):
@@ -100,7 +145,15 @@ def main():
                         help='games per opponent type (default 200)')
     parser.add_argument('--exhaustive', action='store_true',
                         help='check every Yellow reply sequence as well')
+    parser.add_argument('--show', action='store_true',
+                        help='play one random bot game in a window and exit')
+    parser.add_argument('--seed', type=int, default=None,
+                        help='repeat a specific game with --show')
     args = parser.parse_args()
+
+    if args.show:
+        show_random_game(args.seed)
+        return
 
     for kind in ('random', 'rule'):
         wins, lengths = run_games(kind, args.games)
