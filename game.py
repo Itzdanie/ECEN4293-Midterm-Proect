@@ -53,6 +53,8 @@ class ConnectFourGame:
         self.board.clear()
         self.turn = 0
         self.note = ''
+        if self.view is not None:
+            self.view.note = ''
 
         # Main game loop
         while not self.board.is_full():
@@ -67,8 +69,6 @@ class ConnectFourGame:
             # Display the board
             status_text = (f"{current_player.name}'s turn "
                            f"(playing '{current_player.symbol}')")
-            if self.note:
-                status_text += '\n' + self.note
             self.display(status_text=status_text)
 
             # Get the next player's move
@@ -90,6 +90,11 @@ class ConnectFourGame:
             note = getattr(current_player, 'status_note', '')
             if note:
                 self.note = note
+                if self.view is not None:
+                    # Only steady state is shown in the window, and it stays
+                    # up on human turns too
+                    steady = getattr(current_player, 'in_steady_state', False)
+                    self.view.note = note if steady else ''
                 print(note)
 
             # Increment the turn count
