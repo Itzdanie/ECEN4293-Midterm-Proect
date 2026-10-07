@@ -60,14 +60,30 @@ class CPUPlayer(AbstractPlayer):
 
 
 class RuleBasedPlayer(AbstractPlayer):
-    """Takes a win, else blocks a loss, else plays the most central column."""
+    """Takes a win, else blocks a loss, else plays a column.
+
+    The last choice is the most central open column, or a random open
+    column when a seed is given (a seed also makes the game repeatable).
+    """
 
     is_bot = True
+
+    def __init__(self, *args, seed=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rng = None if seed is None else random.Random(seed)
 
     def move(self, board=None, **kwargs):
         if board is None:
             raise ValueError('RuleBasedPlayer.move needs a board.')
-        col = weakc4.fallback_move(board_to_grid(board, self.symbol))
+        grid = board_to_grid(board, self.symbol)
+        if self.rng is None:
+            col = weakc4.fallback_move(grid)
+        else:
+            col = weakc4.winning_column(grid, weakc4.RED)
+            if col is None:
+                col = weakc4.winning_column(grid, weakc4.YELLOW)
+            if col is None:
+                col = self.rng.choice(weakc4.playable_columns(grid))
         print(f'{self.name} plays in column {col}.')
         return col
 

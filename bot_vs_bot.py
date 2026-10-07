@@ -3,7 +3,7 @@
 ``python bot_vs_bot.py`` plays the bot against each Player 2 type.
 ``python bot_vs_bot.py --exhaustive`` additionally checks every possible
 Player 2 reply sequence against the WeakC4 solution (takes a few minutes).
-``python bot_vs_bot.py --show`` plays one random game in a window.
+``python bot_vs_bot.py --show`` plays the bot against the rule-based bot in a window.
 """
 
 import argparse
@@ -36,21 +36,23 @@ def make_opponent(kind, seed=None):
     """Build a Player 2 of the given kind: 'random' or 'rule'."""
     if kind == 'random':
         return CPUPlayer(symbol=YELLOW_SYMBOL, name='Random', seed=seed)
-    return RuleBasedPlayer(symbol=YELLOW_SYMBOL, name='Rule-based')
+    return RuleBasedPlayer(symbol=YELLOW_SYMBOL, name='Rule-based',
+                           seed=seed)
 
 
-def show_random_game(seed=None, delay=0.7):
-    """Play one randomly chosen bot game in a matplotlib window.
+def show_game(seed=None, delay=0.7):
+    """Play the perfect bot against a random rule-based bot in a window.
 
-    The opponent kind and the random opponent's seed are picked at random
-    (or from `seed`, to repeat a game). Returns the winner or None.
+    The rule-based bot plays random moves when it has no win or block, so
+    each game differs; a `seed` repeats one. Returns the winner or None.
     """
     import matplotlib.pyplot as plt
     from matplotlib_view import MatplotlibBoardView
 
-    rng = random.Random(seed)
-    kind = rng.choice(('random', 'rule'))
-    opponent = make_opponent(kind, rng.randrange(2 ** 32))
+    if seed is None:
+        seed = random.randrange(2 ** 32)
+    print(f'Game seed: {seed}')
+    opponent = make_opponent('rule', seed)
     bot = PerfectPlayer(symbol=RED_SYMBOL, name='Perfect')
     players = (bot, opponent)
     print(f'Perfect bot vs {opponent.name} opponent.')
@@ -146,13 +148,13 @@ def main():
     parser.add_argument('--exhaustive', action='store_true',
                         help='check every Yellow reply sequence as well')
     parser.add_argument('--show', action='store_true',
-                        help='play one random bot game in a window and exit')
+                        help='play the bot against the rule-based bot in a window')
     parser.add_argument('--seed', type=int, default=None,
                         help='repeat a specific game with --show')
     args = parser.parse_args()
 
     if args.show:
-        show_random_game(args.seed)
+        show_game(args.seed)
         return
 
     for kind in ('random', 'rule'):
