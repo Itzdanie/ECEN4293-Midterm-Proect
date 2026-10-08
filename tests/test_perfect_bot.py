@@ -148,3 +148,42 @@ def test_moves_to_win_every_diagram_entry(book):
     for position, index in entries[:25]:
         grid = weakc4.grid_from_position(position)
         assert 1 <= book.moves_to_win(grid, (index, False)) <= 21
+
+
+def record_game(seed):
+    """Play the bot against a seeded rule-based opponent; return its moves."""
+    moves = []
+    bot = PerfectPlayer(symbol=bot_vs_bot.RED_SYMBOL, name='Perfect')
+    opponent = bot_vs_bot.make_opponent('rule', seed)
+    for player in (bot, opponent):
+        original = player.move
+
+        def move(player=player, original=original, **kwargs):
+            col = original(**kwargs)
+            moves.append((player.name, col))
+            return col
+
+        player.move = move
+    bot_vs_bot.play_game(bot, opponent)
+    return moves
+
+
+def test_seed_replays_the_same_game():
+    assert record_game(7) == record_game(7)
+    # Different seeds should not all collapse into one game.
+    assert len({tuple(record_game(seed)) for seed in range(5)}) > 1
+
+
+def test_show_game_plays_to_a_bot_win_headless(monkeypatch, capsys):
+    import matplotlib
+    import matplotlib.pyplot as plt
+    monkeypatch.setattr(matplotlib, 'get_backend', lambda: 'agg')
+    plt.switch_backend('Agg')
+    monkeypatch.setattr(plt, 'show', lambda *args, **kwargs: None)
+    try:
+        winner = bot_vs_bot.show_game(seed=3, delay=0)
+    finally:
+        plt.close('all')
+    assert winner is not None
+    assert winner.name == 'Perfect'
+    assert 'Game seed: 3' in capsys.readouterr().out
