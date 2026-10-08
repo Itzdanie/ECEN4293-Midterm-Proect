@@ -3,7 +3,8 @@
 ``python bot_vs_bot.py`` plays the bot against each Player 2 type.
 ``python bot_vs_bot.py --exhaustive`` additionally checks every possible
 Player 2 reply sequence against the WeakC4 solution (takes a few minutes).
-``python bot_vs_bot.py --show`` plays the bot against the rule-based bot in a window.
+``python bot_vs_bot.py --show`` plays the bot against a random rule-based
+bot in a window; ``--seed N`` replays one such game.
 """
 
 import argparse
@@ -62,7 +63,8 @@ def show_game(seed=None, delay=0.7):
     view.draw(status_text=f'Perfect bot vs {opponent.name}')
     winner = None
     for turn in range(board.num_rows * board.num_cols):
-        plt.pause(delay)
+        if delay:
+            plt.pause(delay)
         if view.closed:
             return None
         player = players[turn % 2]
@@ -148,7 +150,7 @@ def main():
     parser.add_argument('--exhaustive', action='store_true',
                         help='check every Yellow reply sequence as well')
     parser.add_argument('--show', action='store_true',
-                        help='play the bot against the rule-based bot in a window')
+                        help='play the bot against a rule-based bot')
     parser.add_argument('--seed', type=int, default=None,
                         help='repeat a specific game with --show')
     args = parser.parse_args()
